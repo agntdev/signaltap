@@ -1,18 +1,18 @@
 [
   {
-    "name": "Opt in",
+    "name": "Opt in reports unavailable storage clearly when the service is not configured",
     "steps": [
       {
         "expect": [
           {
             "method": "sendMessage",
             "payload": {
-              "text": "Confirm subscription to current signal"
+              "text": "Signal storage isn't set up yet. Please try again after the bot is configured."
             }
           }
         ],
         "send": {
-          "callback": "signal:opt_in:${signal_id}"
+          "callback": "signal:opt_in:test-signal"
         }
       }
     ]

@@ -1,6 +1,7 @@
 import { Composer } from "grammy";
 import type { Ctx } from "../bot.js";
 import { mainMenuKeyboard } from "../toolkit/index.js";
+import { upsertSubscriber } from "../domain.js";
 
 // The /start handler renders the bot's MAIN MENU — the primary way users operate
 // a button-first bot. A feature adds its own button by calling
@@ -9,9 +10,12 @@ import { mainMenuKeyboard } from "../toolkit/index.js";
 // file to add a feature. Send ONE message — no placeholder line above the menu.
 const composer = new Composer<Ctx>();
 
-const WELCOME = "👋 Welcome! Tap a button below to get started.";
+const WELCOME = "Welcome to Pocket Options signals. Choose an option below.";
 
 composer.command("start", async (ctx) => {
+  // A user who starts the bot has consented to receive a future signal prompt.
+  // A missing persistence service must not make onboarding unusable.
+  await upsertSubscriber(ctx).catch(() => undefined);
   await ctx.reply(WELCOME, { reply_markup: mainMenuKeyboard() });
 });
 

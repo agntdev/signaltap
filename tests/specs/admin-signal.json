@@ -1,0 +1,13 @@
+[
+  {
+    "name": "admin signal creation explains missing admin setup",
+    "steps": [
+      {
+        "send": { "text": "/create_signal broker | EUR/USD | CALL | 5m | 1% | high | Watch confirmation" },
+        "expect": [
+          { "method": "sendMessage", "payload": { "text": "Admin controls aren't set up yet." } }
+        ]
+      }
+    ]
+  }
+]

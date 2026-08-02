@@ -1,17 +1,32 @@
 import { Composer } from "grammy";
+import type { Ctx } from "../bot.js";
+import { getChoice, getSignal, getSubscriber, recordChoice, signalChoiceStats } from "../domain.js";
+import { sendAdmin } from "../admin.js";
+import { inlineKeyboard } from "../toolkit/index.js";
+import { now } from "../time.js";
+import { signalText, storageMessage } from "../signal-view.js";
 
-// SCAFFOLD — generated from the bot blueprint BEFORE the agent runs.
-// Keep a LIVE registration (.command / .callbackQuery / …) so this feature is
-// never an empty stub. Replace the reply body with real logic + copy; if you
-// change the user-facing text, update tests/specs to match EXACTLY.
-// Do NOT rewrite src/bot.ts — buildBot() already auto-loads this module.
-// Menu: wire this into /start via registerMainMenuItem({ label: "Opt in", data: "signal:opt_in:${signal_id}" }) if the toolkit exposes it.
+const composer = new Composer<Ctx>();
 
-const composer = new Composer();
-
-composer.callbackQuery("signal:opt_in:${signal_id}", async (ctx) => {
+composer.callbackQuery(/^signal:opt_in:([A-Za-z0-9-]+)$/, async (ctx) => {
   await ctx.answerCallbackQuery();
-  await ctx.reply("Confirm subscription to current signal");
+  const signalId = ctx.match[1];
+  try {
+    const subscriberId = String(ctx.from.id);
+    const [signal, choice, subscriber] = await Promise.all([getSignal(ctx, signalId), getChoice(ctx, signalId, subscriberId), getSubscriber(ctx, subscriberId)]);
+    if (!signal) { await ctx.reply("That signal is no longer available."); return; }
+    if (choice) { await ctx.reply("You've already responded to this signal."); return; }
+    await recordChoice(ctx, signalId, true, now().toISOString());
+    await ctx.editMessageText("You're opted in. Here's the full signal.", { reply_markup: inlineKeyboard([]) });
+    const text = signalText(signal, subscriber?.timezone ?? "UTC");
+    const chatId = ctx.chat?.id;
+    if (signal.imageUrl && chatId) {
+      try { await ctx.api.sendPhoto(chatId, signal.imageUrl, { caption: text }); }
+      catch { await ctx.reply(text); }
+    } else await ctx.reply(text);
+    const totals = await signalChoiceStats(ctx, signalId);
+    await sendAdmin(ctx, `Signal activity: ${totals.optedIn} opted in, ${totals.ignored} ignored.`);
+  } catch { await ctx.reply(storageMessage()); }
 });
 
 export default composer;

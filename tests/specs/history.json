@@ -7,7 +7,7 @@
           {
             "method": "sendMessage",
             "payload": {
-              "text": "View personal opt-in history for signals"
+              "text": "Signal storage isn't set up yet. Please try again after the bot is configured."
             }
           }
         ],

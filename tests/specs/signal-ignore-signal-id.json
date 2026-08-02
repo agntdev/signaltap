@@ -1,18 +1,18 @@
 [
   {
-    "name": "Ignore",
+    "name": "Ignore reports unavailable storage clearly when the service is not configured",
     "steps": [
       {
         "expect": [
           {
             "method": "sendMessage",
             "payload": {
-              "text": "Decline current signal"
+              "text": "Signal storage isn't set up yet. Please try again after the bot is configured."
             }
           }
         ],
         "send": {
-          "callback": "signal:ignore:${signal_id}"
+          "callback": "signal:ignore:test-signal"
         }
       }
     ]
