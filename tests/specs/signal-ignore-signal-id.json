@@ -1,0 +1,20 @@
+[
+  {
+    "name": "Ignore",
+    "steps": [
+      {
+        "expect": [
+          {
+            "method": "sendMessage",
+            "payload": {
+              "text": "Decline current signal"
+            }
+          }
+        ],
+        "send": {
+          "callback": "signal:ignore:${signal_id}"
+        }
+      }
+    ]
+  }
+]
