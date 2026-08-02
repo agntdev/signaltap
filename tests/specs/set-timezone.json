@@ -7,7 +7,7 @@
           {
             "method": "sendMessage",
             "payload": {
-              "text": "Set personal timezone for timestamp conversion"
+              "text": "Send your IANA timezone, for example Europe/London. Signals use UTC until you set one."
             }
           }
         ],

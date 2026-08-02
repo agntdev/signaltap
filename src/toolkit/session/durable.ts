@@ -37,6 +37,7 @@ export interface DOStub {
 }
 export interface WorkerEnv {
   BOT_TOKEN: string;
+  ADMIN_CHAT_ID?: string;
   WEBHOOK_SECRET?: string;
   CHAT_DO: DONamespace;
   DB?: unknown; // D1 binding (app data); see AGENTS.md
@@ -49,6 +50,11 @@ interface Reminder {
   at: number; // epoch ms
   chatId: number | string;
   text: string;
+}
+
+interface DomainRequest {
+  key: string;
+  value: unknown;
 }
 
 /**
@@ -140,6 +146,24 @@ export class ChatDO {
       }
       if (request.method === "DELETE") {
         await this.state.storage.delete("session");
+        return new Response(null, { status: 204 });
+      }
+    }
+
+    // Global domain data is routed through the named `domain` Durable Object.
+    // Feature code maintains its own explicit indexes, so this is a point lookup
+    // store rather than a keyspace enumeration API.
+    if (url.pathname === "/domain") {
+      if (request.method === "GET") {
+        const key = url.searchParams.get("key");
+        if (!key) return new Response("bad request", { status: 400 });
+        const value = await this.state.storage.get<unknown>(`domain:${key}`);
+        return value === undefined ? new Response(null, { status: 204 }) : Response.json(value);
+      }
+      if (request.method === "PUT") {
+        const payload = (await request.json()) as DomainRequest;
+        if (!payload.key || payload.key.length > 256) return new Response("bad request", { status: 400 });
+        await this.state.storage.put(`domain:${payload.key}`, payload.value);
         return new Response(null, { status: 204 });
       }
     }
